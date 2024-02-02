@@ -1,0 +1,11 @@
+.env
+.venv
+venv
+data
+target
+*.ddb*
+
+# quarto
+*_files/
+*_figures/
+dashboard.html

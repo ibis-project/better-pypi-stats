@@ -1,0 +1,70 @@
+--- 
+title: "repro"
+format:
+  dashboard:
+    theme: darkly
+    scrolling: true
+server: shiny
+--- 
+
+```{python}
+#| echo: false
+#| output: false
+import ibis
+
+import plotly.express as px
+
+from shiny import ui, render
+from itables import show
+
+# set plotly express to dark mode
+px.defaults.template = "plotly_dark"
+
+ibis.options.interactive = True
+
+t = ibis.examples.penguins.fetch()
+```
+
+## {height=25%}
+
+```{python}
+show(t.limit(10).to_pandas())
+```
+
+```{python}
+show(
+  t.group_by(ibis._.species)
+  .agg(
+    count=ibis._.count()
+  )
+  .order_by(ibis._["count"].desc())
+  .to_pandas()
+)
+```
+
+## {.toolbar}
+
+```{python}
+#| panel: input
+ui.input_text("species", "Species:", value="Gentoo")
+```
+
+### plot
+
+```{python}
+@render.plot
+def bar_chart():
+
+    species = input.species()
+    #species = "Adelie"
+
+    px.bar(
+        t.filter(t.species == species)
+        .group_by(ibis._.island)
+        .agg(
+            count=ibis._.count()
+        ),
+        x="island",
+        y="count",
+    )
+```

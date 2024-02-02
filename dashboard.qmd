@@ -1,0 +1,108 @@
+--- 
+title: "Better PyPI stats"
+#author: "Ibis team"
+logo: logo.svg
+format:
+  dashboard:
+    theme: darkly
+    scrolling: true
+--- 
+
+```{python}
+#| echo: false
+#| output: false
+import ibis
+
+import plotly.express as px
+
+from shiny import ui, render
+from itables import show
+from datetime import datetime
+
+# set plotly express to dark mode
+px.defaults.template = "plotly_dark"
+
+ibis.options.interactive = True
+
+host = "clickpy-clickhouse.clickhouse.com"
+port = 443
+user = "play"
+database = "pypi"
+
+con = ibis.clickhouse.connect(
+  host=host,
+  port=port,
+  user=user,
+  database=database,
+)
+
+pypi = con.table("pypi")
+projects = con.table("projects")
+```
+
+
+
+## {height=25%}
+
+### Total packages
+
+```{python}
+#| content: valuebox
+#| title: "Total packages"
+#| icon: boxes
+#| color: primary
+dict(
+  value = f"{projects.count().to_pandas():,}",
+)
+```
+
+### Total rows
+
+```{python}
+#| content: valuebox
+#| title: "Total rows"
+#| icon: bookshelf
+#| color: primary
+dict(
+  value = f"{pypi.count().to_pandas():,}",
+)
+```
+
+## PyPI stats {height=100%}
+
+### {.toolbar}
+
+```{python}
+#| panel: input
+
+ui.input_text("package", "Package:", value="ibis-framework")
+
+#ui.input_date_range(
+#    "daterange",
+#    "Date range",
+#    start="2020-01-01",
+#    end=datetime.today().strftime("%Y-%m-%d"),
+#)
+```
+
+### plot
+
+```{python}
+@render.plot
+def pypi_plot():
+    t = (
+        pypi.filter(ibis._.project == package)  # input.package())
+        .group_by(date=ibis._.date.truncate("M"), version="version")
+        .agg(count=ibis._.count())
+        .order_by(ibis._.date.desc())
+        .mutate(date=ibis._.date.cast("string"))
+    )
+
+    px.bar(
+        t,
+        x="date",
+        y="count",
+        title=f"Downloads for {package}",
+        color="version",
+    )
+```

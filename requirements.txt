@@ -1,0 +1,12 @@
+# python
+ruff
+ibis-framework[clickhouse] @ git+https://github.com/ibis-project/ibis
+
+# ML
+ibisml @ git+https://github.com/ibis-project/ibisml # unused for now
+
+# viz
+shiny
+plotly
+itables
+
