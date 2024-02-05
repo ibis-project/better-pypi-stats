@@ -88,21 +88,26 @@ ui.input_text("package", "Package:", value="ibis-framework")
 ### plot
 
 ```{python}
-@render.plot
-def pypi_plot():
-    t = (
-        pypi.filter(ibis._.project == package)  # input.package())
-        .group_by(date=ibis._.date.truncate("M"), version="version")
-        .agg(count=ibis._.count())
-        .order_by(ibis._.date.desc())
-        .mutate(date=ibis._.date.cast("string"))
-    )
+# couldn't get this to work and got unhelpful response from maintainer: https://github.com/quarto-dev/quarto-cli/discussions/8574
+# we'll need to make this interactive
+#@render.plot
+#def pypi_plot():
 
-    px.bar(
-        t,
-        x="date",
-        y="count",
-        title=f"Downloads for {package}",
-        color="version",
-    )
+package = "ibis-framework"
+
+t = (
+    pypi.filter(ibis._.project == package)  # input.package())
+    .group_by(date=ibis._.date.truncate("M"), version="version")
+    .agg(count=ibis._.count())
+    .order_by(ibis._.date.desc())
+    .mutate(date=ibis._.date.cast("string"))
+)
+
+px.bar(
+    t,
+    x="date",
+    y="count",
+    title=f"Downloads for {package}",
+    color="version",
+)
 ```

@@ -10,3 +10,6 @@ shiny
 plotly
 itables
 
+# quarto
+pyyaml
+nbclient
