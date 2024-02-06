@@ -14,7 +14,7 @@ dashboard application.
 
 ## Connecting to  data
 
-```
+```python
 import ibis
 
 ibis.options.interactive = True
