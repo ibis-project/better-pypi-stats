@@ -9,6 +9,7 @@ ibisml @ git+https://github.com/ibis-project/ibisml # unused for now
 shiny
 plotly
 itables
+shinywidgets
 
 # quarto
 pyyaml

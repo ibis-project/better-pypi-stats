@@ -86,7 +86,7 @@ dict(
 
 ```{python}
 ui.input_text("package", "Package:", value="ibis-framework")
-ui.input_slider("rng", "Range", min = 0, max=1000, value=30, step=30, ticks=True)
+ui.input_slider("rng", "Range", min = 0, max=1000, value=7*20, step=7, ticks=True)
 
 @reactive.Calc
 def filtered_pypi():
@@ -112,7 +112,7 @@ def filtered_pypi():
 def plot0():
   t = (
       filtered_pypi()
-      .group_by(date=ibis._.date, color=ibis._.python_minor)
+      .group_by(date=ibis._.date.truncate("W"), color=ibis._.python_minor)
       .agg(count=ibis._.count())
       .order_by(ibis._.date.desc())
       .mutate(date=ibis._.date.cast("string"))
@@ -130,7 +130,7 @@ def plot0():
 def line():
   t = (
       filtered_pypi()
-      .group_by(date=ibis._.date, color=ibis._.installer)
+      .group_by(date=ibis._.date.truncate("W"), color=ibis._.installer)
       .agg(count=ibis._.count())
       .order_by(ibis._.date.desc())
       .mutate(date=ibis._.date.cast("string"))
@@ -148,7 +148,7 @@ def line():
 def line2():
   t = (
       filtered_pypi()
-      .group_by(date=ibis._.date, system=ibis._.system)
+      .group_by(date=ibis._.date.truncate("W"), system=ibis._.system)
       .agg(count=ibis._.count())
       .order_by(ibis._.date.desc())
       .mutate(date=ibis._.date.cast("string"))
