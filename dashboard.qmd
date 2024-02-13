@@ -1,23 +1,29 @@
---- 
+---
 title: "Better PyPI stats"
-#author: "Ibis team"
 logo: logo.svg
 format:
   dashboard:
     theme: darkly
     scrolling: true
---- 
+server: shiny
+---
+
 
 ```{python}
 #| echo: false
 #| output: false
+
+import plotly.express as px
+from shinywidgets import render_plotly  
+
+
 import ibis
 
 import plotly.express as px
 
-from shiny import ui, render
+from shiny import ui, render, reactive
 from itables import show
-from datetime import datetime
+from datetime import datetime, timedelta
 
 # set plotly express to dark mode
 px.defaults.template = "plotly_dark"
@@ -38,13 +44,11 @@ con = ibis.clickhouse.connect(
 
 pypi = con.table("pypi")
 projects = con.table("projects")
+
 ```
 
 
-
-## {height=25%}
-
-### Total packages
+## Row
 
 ```{python}
 #| content: valuebox
@@ -56,7 +60,15 @@ dict(
 )
 ```
 
-### Total rows
+```{python}
+#| content: valuebox
+#| title: "Total authors"
+#| icon: person
+#| color: primary
+dict(
+  value = f"{projects.select('author').nunique().to_pandas():,}",
+)
+```
 
 ```{python}
 #| content: valuebox
@@ -68,46 +80,81 @@ dict(
 )
 ```
 
-## PyPI stats {height=100%}
+## Row 
 
 ### {.toolbar}
 
 ```{python}
-#| panel: input
-
 ui.input_text("package", "Package:", value="ibis-framework")
+ui.input_slider("rng", "Range", min = 0, max=1000, value=7*20, step=7, ticks=True)
 
-#ui.input_date_range(
-#    "daterange",
-#    "Date range",
-#    start="2020-01-01",
-#    end=datetime.today().strftime("%Y-%m-%d"),
-#)
+@reactive.Calc
+def filtered_pypi():
+  package = input.package()
+  days = input.rng()
+  today = datetime.today()
+  n_days_ago = today - timedelta(days=days)
+  end_date = today.strftime("%Y-%m-%d")
+  start_date = n_days_ago.strftime("%Y-%m-%d")
+  data = (
+    pypi.filter(ibis._.project == package)
+    .filter(ibis._.date >= ibis.date(start_date))
+    .filter(ibis._.date <= ibis.date(end_date))
+  )
+  return data
 ```
 
-### plot
+
+## Plot 1 
 
 ```{python}
-# couldn't get this to work and got unhelpful response from maintainer: https://github.com/quarto-dev/quarto-cli/discussions/8574
-# we'll need to make this interactive
-#@render.plot
-#def pypi_plot():
+@render_plotly
+def plot0():
+  t = (
+      filtered_pypi()
+      .group_by(date=ibis._.date.truncate("W"), color=ibis._.python_minor)
+      .agg(count=ibis._.count())
+      .order_by(ibis._.date.desc())
+      .mutate(date=ibis._.date.cast("string"))
+  )
 
-package = "ibis-framework"
+  fig = px.bar(t, x="date", y='count', title=f"Daily downloads - Overall", color="color")
+  fig.update_layout(title_x=0.5)
+  return fig
+```
 
-t = (
-    pypi.filter(ibis._.project == package)  # input.package())
-    .group_by(date=ibis._.date.truncate("M"), version="version")
-    .agg(count=ibis._.count())
-    .order_by(ibis._.date.desc())
-    .mutate(date=ibis._.date.cast("string"))
-)
+## Plot 2
 
-px.bar(
-    t,
-    x="date",
-    y="count",
-    title=f"Downloads for {package}",
-    color="version",
-)
+```{python}
+@render_plotly
+def line():
+  t = (
+      filtered_pypi()
+      .group_by(date=ibis._.date.truncate("W"), color=ibis._.installer)
+      .agg(count=ibis._.count())
+      .order_by(ibis._.date.desc())
+      .mutate(date=ibis._.date.cast("string"))
+  )
+
+  fig = px.bar(t, x="date", y='count',title=f"Daily downloads - Installer", color="color")
+  fig.update_layout(title_x=0.5)
+  return fig
+```
+
+## Plot 3
+
+```{python}
+@render_plotly
+def line2():
+  t = (
+      filtered_pypi()
+      .group_by(date=ibis._.date.truncate("W"), system=ibis._.system)
+      .agg(count=ibis._.count())
+      .order_by(ibis._.date.desc())
+      .mutate(date=ibis._.date.cast("string"))
+  )
+
+  fig = px.bar(t, x="date", y='count',title=f"Daily downloads - System", color="system")
+  fig.update_layout(title_x=0.5)
+  return fig
 ```
