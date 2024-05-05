@@ -1,16 +1,11 @@
 # python
 ruff
-ibis-framework[clickhouse] @ git+https://github.com/ibis-project/ibis
+ibis-framework[clickhouse]
 
 # ML
 ibisml @ git+https://github.com/ibis-project/ibisml # unused for now
 
 # viz
-shiny
 plotly
-itables
-shinywidgets
+streamlit
 
-# quarto
-pyyaml
-nbclient
