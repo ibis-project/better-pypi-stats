@@ -13,12 +13,17 @@ default:
 
 # setup
 setup:
-    @pip install --upgrade -r requirements.txt
+    @pip install uv
+    @uv pip install --upgrade -r requirements.txt
 
 # dashboard
 app:
-    @quarto preview dashboard.qmd
+    @streamlit run dashboard.py
 
 # format
 format:
     @ruff format .
+
+# eda
+eda:
+    @ipython -i eda.py
