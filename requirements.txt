@@ -2,9 +2,6 @@
 ruff
 ibis-framework[clickhouse]
 
-# ML
-ibisml @ git+https://github.com/ibis-project/ibisml # unused for now
-
 # viz
 plotly
 streamlit
