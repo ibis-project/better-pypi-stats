@@ -33,7 +33,7 @@ with st.form(key="dashboard"):
         "X days",
         min_value=1,
         max_value=3650,
-        value=90,
+        value=365,
         step=30,
         format="%d",
     )
@@ -71,6 +71,70 @@ c0 = px.line(
 )
 c0.update_yaxes(range=[0, c0.data[0].y.max() * 1.1])
 st.plotly_chart(c0, use_container_width=True)
+
+# r28 day downloads
+tt = pypi.filter(pypi["project"] == project_name)
+tt = tt.mutate(
+    timestamp=pypi["date"].cast("timestamp"),
+)
+tt = tt.group_by("timestamp").agg(downloads=ibis._["count"].sum())
+tt = (
+    tt.select(
+        "timestamp",
+        rolling_downloads=ibis._["downloads"]
+        .sum()
+        .over(
+            ibis.window(
+                order_by="timestamp",
+                preceding=28,
+                following=0,
+            )
+        ),
+    )
+    .order_by("timestamp")
+)
+tt = tt.filter(tt["timestamp"] > datetime.now() - timedelta(days=days))
+c00  = px.line(
+    tt,
+    x="timestamp",
+    y="rolling_downloads",
+    title=f"28 day rolling downloads of {project_name}",
+)
+
+# r28 day downloads by version
+tt = pypi.filter(pypi["project"] == project_name)
+tt = tt.mutate(
+    timestamp=pypi["date"].cast("timestamp"),
+    version=tt["version"].split(".")[0],
+)
+tt = tt.group_by("timestamp", "version").agg(downloads=ibis._["count"].sum())
+tt = (
+    tt.select(
+        "timestamp",
+        "version",
+        rolling_downloads=ibis._["downloads"]
+        .sum()
+        .over(
+            ibis.window(
+                order_by="timestamp",
+                group_by="version",
+                preceding=28,
+                following=0,
+            )
+        ),
+    )
+    .order_by("timestamp", "version")
+)
+tt = tt.filter(tt["timestamp"] > datetime.now() - timedelta(days=days))
+
+c00 = px.line(
+    tt,
+    x="timestamp",
+    y="rolling_downloads",
+    title=f"28 day rolling downloads of {project_name} by version",
+    color="version",
+)
+st.plotly_chart(c00, use_container_width=True)
 
 # cumulative downloads
 c1 = px.line(
