@@ -1,7 +1,0 @@
-# python
-ruff
-ibis-framework[clickhouse]
-
-# viz
-plotly
-streamlit

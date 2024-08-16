@@ -4,18 +4,12 @@ import os
 import sys
 import ibis
 
-import logging as log
 import plotly.io as pio
 import ibis.selectors as s
 import plotly.express as px
 
 from rich import print
-from dotenv import load_dotenv
 from datetime import datetime, timedelta, date
-
-# configuration
-## logger
-log.basicConfig(level=log.INFO)
 
 ## ibis config
 ibis.options.interactive = True
