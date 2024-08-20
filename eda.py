@@ -16,15 +16,6 @@ ibis.options.interactive = True
 ibis.options.repr.interactive.max_rows = 20
 ibis.options.repr.interactive.max_columns = None
 
-# variables
-NOW = datetime.now()
-NOW_7 = NOW - timedelta(days=7)
-NOW_30 = NOW - timedelta(days=30)
-NOW_90 = NOW - timedelta(days=90)
-NOW_180 = NOW - timedelta(days=180)
-NOW_365 = NOW - timedelta(days=365)
-NOW_10 = NOW - timedelta(days=3650)
-
 # connect to database
 host = "clickpy-clickhouse.clickhouse.com"
 port = 443
