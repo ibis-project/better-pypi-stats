@@ -33,3 +33,7 @@ eda:
 # deploy
 deploy:
     @rsconnect deploy shiny dashboard --name dkdc --title better-pypi-stats 
+
+# open
+open:
+    @open https://dkdc.shinyapps.io/better-pypi-stats

@@ -1,6 +1,2 @@
 .env
 .venv
-venv
-data
-target
-*.ddb*
