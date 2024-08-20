@@ -1,0 +1,4 @@
+ruff
+rsconnect-python
+
+-r dashboard/requirements.txt

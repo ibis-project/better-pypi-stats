@@ -14,11 +14,13 @@ default:
 # setup
 setup:
     @pip install uv
-    @uv pip install --upgrade -r requirements.txt
+    @uv venv
+    @. .venv/bin/activate
+    @uv pip install --upgrade --resolution=highest -r dev-requirements.txt
 
 # dashboard
 app:
-    @streamlit run dashboard.py
+    @shiny run dashboard/app.py -b
 
 # format
 format:
@@ -27,3 +29,7 @@ format:
 # eda
 eda:
     @ipython -i eda.py
+
+# deploy
+deploy:
+    @rsconnect deploy shiny dashboard --name dkdc --title better-pypi-stats 

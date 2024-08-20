@@ -1,0 +1,5 @@
+ibis-framework[clickhouse,polars]
+plotly
+shiny
+shinywidgets
+shinyswatch
