@@ -39,6 +39,12 @@ ui.page_opts(
 
 # add page title and sidebar
 with ui.sidebar(open="desktop"):
+    ui.input_select(
+        "version_style",
+        "Version style",
+        ["major", "major.minor", "major.minor.patch"],
+        selected="major",
+    )
     ui.input_date_range(
         "date_range",
         "Date range",
@@ -138,13 +144,6 @@ with ui.layout_columns():
 
     with ui.card(full_screen=True):
         "Rolling 28d downloads by version"
-
-        ui.input_select(
-            "version_style",
-            "Version style",
-            ["major", "major.minor", "major.minor.patch"],
-            selected="major",
-        )
 
         @render_plotly
         def downloads_by_version_roll():
