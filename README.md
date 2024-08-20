@@ -36,6 +36,7 @@ Install [`gh`](https://github.com/cli/cli) and [`just`](https://github.com/casey
 gh repo clone ibis-project/pypi-analytics
 cd pypi-analytics
 just setup
+. .venv/bin/activate
 just app
 ```
 
