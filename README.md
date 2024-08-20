@@ -2,8 +2,6 @@
 
 You can use https://pypistats.org to see the downloads for a given PyPI package. However, the statistics and visualizations provided by the website are limited. The purpose of this project is to provide a better dynamic alternative with [Ibis](https://github.com/ibis-project/ibis), [ClickHouse](https://github.com/clickhouse/clickhouse), and [Shiny for Python](https://github.com/posit-dev/py-shiny).
 
-Then entire `pypi` dataset is approaching a trillion rows of data. Fortunately, with the aggregated data provided by ClickHouse on a public playground instance and Ibis for transformation, we can easily process this data in an embedded dashboard application.
-
 ## Connecting to  data
 
 ```python
