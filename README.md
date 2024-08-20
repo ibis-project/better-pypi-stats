@@ -2,6 +2,10 @@
 
 You can use https://pypistats.org to see the downloads for a given PyPI package. However, the statistics and visualizations provided by the website are limited. The purpose of this project is to provide a better dynamic alternative with [Ibis](https://github.com/ibis-project/ibis), [ClickHouse](https://github.com/clickhouse/clickhouse), and [Shiny for Python](https://github.com/posit-dev/py-shiny).
 
+## Dashboard
+
+https://dkdc.shinyapps.io/better-pypi-stats
+
 ## Connecting to  data
 
 ```python
