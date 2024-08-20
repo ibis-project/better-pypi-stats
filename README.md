@@ -33,8 +33,8 @@ con.list_tables()
 Install [`gh`](https://github.com/cli/cli) and [`just`](https://github.com/casey/just), then:
 
 ```bash
-gh repo clone ibis-project/pypi-analytics
-cd pypi-analytics
+gh repo clone ibis-project/better-pypi-stats
+cd better-pypi-stats
 just setup
 . .venv/bin/activate
 just app
