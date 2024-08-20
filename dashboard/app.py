@@ -25,11 +25,10 @@ con = ibis.clickhouse.connect(
 downloads_t = con.table(
     "pypi_downloads_per_day_by_version_by_installer_by_type_by_country"
 )
-overall_t = con.table("pypi_downloads")
 
-# dark themes
-# px.defaults.template = "plotly_dark"
-ui.page_opts(theme=theme.sketchy)
+# themes
+px.defaults.template = "plotly_dark"
+ui.page_opts(theme=theme.superhero)
 
 # page options
 ui.page_opts(
@@ -40,13 +39,6 @@ ui.page_opts(
 
 # add page title and sidebar
 with ui.sidebar(open="desktop"):
-    ui.input_select(
-        "version_style",
-        "Version style",
-        ["major", "major.minor", "major.minor.patch"],
-        selected="major.minor",
-    )
-
     ui.input_date_range(
         "date_range",
         "Date range",
@@ -61,170 +53,132 @@ with ui.sidebar(open="desktop"):
     ui.input_action_button("last_365d", "Last 365 days")
     ui.input_action_button("last_all", "All available data")
 
-with ui.nav_panel("Package"):
-    with ui.layout_columns():
-        with ui.card():
-            ui.input_text(
-                "package", "Package", value="pyarrow", placeholder="Enter package"
+    with ui.value_box(full_screen=True):
+        "Total days in range"
+
+        @render.express
+        def total_days():
+            start_date, end_date = date_range()
+            days = (end_date - start_date).days
+            f"{days:,}"
+
+
+with ui.layout_columns():
+    with ui.card():
+        ui.input_text(
+            "package", "Package", value="pyarrow", placeholder="Enter package"
+        )
+    with ui.card():
+
+        @render.express
+        def title():
+            f"PyPI package: {input.package()} from {input.date_range()[0]} to {input.date_range()[1]}"
+
+
+with ui.layout_columns():
+    with ui.value_box(full_screen=True):
+        "Total downloads"
+
+        @render.express
+        def total_downloads():
+            val = downloads_data()["count"].sum().to_pyarrow().as_py()
+            f"{val:,}"
+
+    with ui.value_box(full_screen=True):
+        "Total versions"
+
+        @render.express
+        def total_versions():
+            val = (
+                downloads_data()
+                .distinct(on="version")["version"]
+                .to_pyarrow()
+                .to_pylist()
             )
-        with ui.card():
+            f"{len(val):,}"
 
-            @render.express
-            def title():
-                f"PyPI package: {input.package()} from {input.date_range()[0]} to {input.date_range()[1]}"
 
-    with ui.layout_columns():
-        with ui.value_box(full_screen=True):
-            "Total days"
-
-            @render.express
-            def total_days():
-                start_date, end_date = date_range()
-                days = (end_date - start_date).days
-                f"{days:,}"
-
-        with ui.value_box(full_screen=True):
-            "Total downloads"
-
-            @render.express
-            def total_downloads():
-                val = downloads_data()["count"].sum().to_pyarrow().as_py()
-                f"{val:,}"
-
-        with ui.value_box(full_screen=True):
-            "Total versions"
-
-            @render.express
-            def total_versions():
-                val = (
-                    downloads_data()
-                    .distinct(on="version")["version"]
-                    .to_pyarrow()
-                    .to_pylist()
-                )
-                f"{len(val):,}"
-
-    with ui.layout_columns():
-        with ui.card(full_screen=True):
-            "Rolling 28d downloads"
-
-            @render_plotly
-            def downloads_roll():
-                t = _downloads_data()
-                min_date, max_date = date_range()
-
-                t = t.mutate(
-                    timestamp=t["date"].cast("timestamp"),
-                )
-                t = t.group_by("timestamp").agg(downloads=ibis._["count"].sum())
-                t = (
-                    t.select(
-                        "timestamp",
-                        rolling_downloads=ibis._["downloads"]
-                        .sum()
-                        .over(
-                            ibis.window(
-                                order_by="timestamp",
-                                preceding=28,
-                                following=0,
-                            )
-                        ),
-                    )
-                    .filter(t["timestamp"] >= min_date, t["timestamp"] <= max_date)
-                    .order_by("timestamp")
-                )
-
-                c = px.line(
-                    t,
-                    x="timestamp",
-                    y="rolling_downloads",
-                )
-
-                return c
-
-        with ui.card(full_screen=True):
-            "Rolling 28d downloads by version"
-
-            @render_plotly
-            def downloads_by_version_roll():
-                t = _downloads_data()
-                min_date, max_date = date_range()
-
-                t = t.mutate(
-                    timestamp=t["date"].cast("timestamp"),
-                )
-                t = t.group_by("timestamp", "version").agg(
-                    downloads=ibis._["count"].sum()
-                )
-                t = (
-                    t.select(
-                        "timestamp",
-                        "version",
-                        rolling_downloads=ibis._["downloads"]
-                        .sum()
-                        .over(
-                            ibis.window(
-                                order_by="timestamp",
-                                group_by="version",
-                                preceding=28,
-                                following=0,
-                            )
-                        ),
-                    )
-                    .filter(t["timestamp"] >= min_date, t["timestamp"] <= max_date)
-                    .order_by("timestamp")
-                )
-
-                c = px.line(
-                    t,
-                    x="timestamp",
-                    y="rolling_downloads",
-                    color="version",
-                    category_orders={
-                        "version": reversed(
-                            sorted(
-                                t.distinct(on="version")["version"]
-                                .to_pyarrow()
-                                .to_pylist(),
-                                key=lambda x: tuple(
-                                    int(y) for y in x.split(".") if y.isdigit()
-                                ),
-                            )
-                        )
-                    },
-                )
-
-                return c
-
+with ui.layout_columns():
     with ui.card(full_screen=True):
-        "Downloads by..."
-
-        with ui.card_header(class_="d-flex justify-content-between align-items-center"):
-            with ui.layout_columns():
-                ui.input_select(
-                    "group_by_downloads",
-                    "Group by:",
-                    [None, "version", "country_code", "installer", "type"],
-                    selected="version",
-                )
+        "Rolling 28d downloads"
 
         @render_plotly
-        def downloads_flex():
-            group_by = input.group_by_downloads()
+        def downloads_roll():
+            t = _downloads_data()
+            min_date, max_date = date_range()
 
-            t = downloads_data()
-            t = t.mutate(timestamp=t["date"].cast("timestamp"))
-            t = t.group_by(["timestamp", group_by] if group_by else "timestamp").agg(
-                downloads=ibis._["count"].sum()
+            t = t.mutate(
+                timestamp=t["date"].cast("timestamp"),
             )
-            t = t.order_by("timestamp", ibis.desc("downloads"))
+            t = t.group_by("timestamp").agg(downloads=ibis._["count"].sum())
+            t = (
+                t.select(
+                    "timestamp",
+                    rolling_downloads=ibis._["downloads"]
+                    .sum()
+                    .over(
+                        ibis.window(
+                            order_by="timestamp",
+                            preceding=28,
+                            following=0,
+                        )
+                    ),
+                )
+                .filter(t["timestamp"] >= min_date, t["timestamp"] <= max_date)
+                .order_by("timestamp")
+            )
 
-            c = px.bar(
+            c = px.line(
                 t,
                 x="timestamp",
-                y="downloads",
-                color=group_by if group_by else None,
-                barmode="stack",
+                y="rolling_downloads",
+            )
+
+            return c
+
+    with ui.card(full_screen=True):
+        "Rolling 28d downloads by version"
+
+        ui.input_select(
+            "version_style",
+            "Version style",
+            ["major", "major.minor", "major.minor.patch"],
+            selected="major",
+        )
+
+        @render_plotly
+        def downloads_by_version_roll():
+            t = _downloads_data()
+            min_date, max_date = date_range()
+
+            t = t.mutate(
+                timestamp=t["date"].cast("timestamp"),
+            )
+            t = t.group_by("timestamp", "version").agg(downloads=ibis._["count"].sum())
+            t = (
+                t.select(
+                    "timestamp",
+                    "version",
+                    rolling_downloads=ibis._["downloads"]
+                    .sum()
+                    .over(
+                        ibis.window(
+                            order_by="timestamp",
+                            group_by="version",
+                            preceding=28,
+                            following=0,
+                        )
+                    ),
+                )
+                .filter(t["timestamp"] >= min_date, t["timestamp"] <= max_date)
+                .order_by("timestamp")
+            )
+
+            c = px.line(
+                t,
+                x="timestamp",
+                y="rolling_downloads",
+                color="version",
                 category_orders={
                     "version": reversed(
                         sorted(
@@ -236,93 +190,100 @@ with ui.nav_panel("Package"):
                             ),
                         )
                     )
-                }
-                if group_by == "version"
-                else None,
+                },
             )
 
             return c
 
-    with ui.layout_columns():
-        with ui.card(full_screen=True):
-            "Downloads by day of week"
 
-            @render_plotly
-            def downloads_day_of_week():
-                t = downloads_data()
-                t = t.mutate(day_of_week=t["date"].day_of_week.full_name())
-                t = t.group_by("day_of_week").agg(downloads=ibis._["count"].sum())
-                c = px.bar(
-                    t,
-                    x="day_of_week",
-                    y="downloads",
-                    category_orders={
-                        "day_of_week": [
-                            "Sunday",
-                            "Monday",
-                            "Tuesday",
-                            "Wednesday",
-                            "Thursday",
-                            "Friday",
-                            "Saturday",
-                        ]
-                    },
+with ui.card(full_screen=True):
+    "Downloads by..."
+
+    with ui.card_header(class_="d-flex justify-content-between align-items-center"):
+        with ui.layout_columns():
+            ui.input_select(
+                "group_by_downloads",
+                "Group by:",
+                [None, "version", "country_code", "installer", "type"],
+                selected="version",
+            )
+
+    @render_plotly
+    def downloads_flex():
+        group_by = input.group_by_downloads()
+
+        t = downloads_data()
+        t = t.mutate(timestamp=t["date"].cast("timestamp"))
+        t = t.group_by(["timestamp", group_by] if group_by else "timestamp").agg(
+            downloads=ibis._["count"].sum()
+        )
+        t = t.order_by("timestamp", ibis.desc("downloads"))
+
+        c = px.bar(
+            t,
+            x="timestamp",
+            y="downloads",
+            color=group_by if group_by else None,
+            barmode="stack",
+            category_orders={
+                "version": reversed(
+                    sorted(
+                        t.distinct(on="version")["version"].to_pyarrow().to_pylist(),
+                        key=lambda x: tuple(
+                            int(y) for y in x.split(".") if y.isdigit()
+                        ),
+                    )
                 )
+            }
+            if group_by == "version"
+            else None,
+        )
 
-                return c
-
-        with ui.card(full_screen=True):
-            "Downloads by version table"
-
-            @render.data_frame
-            def downloads_by_version():
-                t = downloads_data()
-
-                t = (
-                    t.group_by("version")
-                    .agg(downloads=ibis._["count"].sum())
-                    .order_by(ibis.desc("downloads"))
-                )
-
-                return render.DataGrid(t.to_polars())
+        return c
 
 
-with ui.nav_panel("Overall"):
+with ui.layout_columns():
     with ui.card(full_screen=True):
-        top_k = 5000
-        f"Top {top_k} packages by all time downloads"
+        "Downloads by day of week"
+
+        @render_plotly
+        def downloads_day_of_week():
+            t = downloads_data()
+            t = t.mutate(day_of_week=t["date"].day_of_week.full_name())
+            t = t.group_by("day_of_week").agg(downloads=ibis._["count"].sum())
+            c = px.bar(
+                t,
+                x="day_of_week",
+                y="downloads",
+                category_orders={
+                    "day_of_week": [
+                        "Sunday",
+                        "Monday",
+                        "Tuesday",
+                        "Wednesday",
+                        "Thursday",
+                        "Friday",
+                        "Saturday",
+                    ]
+                },
+            )
+
+            return c
+
+    with ui.card(full_screen=True):
+        "Downloads by version table"
 
         @render.data_frame
-        def top_packages():
-            t = overall_t
-            t = t.order_by(ibis.desc("count")).limit(top_k)
+        def downloads_by_version():
+            t = downloads_data()
+
             t = (
-                t.mutate(index=ibis.row_number().over(order_by=ibis.desc("count")))
-                .rename({"downloads": "count"})
-                .relocate("index")
-                .order_by("index")
+                t.group_by("version")
+                .agg(downloads=ibis._["count"].sum())
+                .order_by(ibis.desc("downloads"))
             )
 
             return render.DataGrid(t.to_polars())
-
-    with ui.card(full_screen=True):
-        top_n = 100
-        f"Top {top_n} packages by all time downloads (bar chart)"
-
-        @render_plotly
-        def top_packages_bar():
-            t = overall_t
-            t = t.order_by(ibis.desc("count")).limit(top_n)
-            t = (
-                t.mutate(index=ibis.row_number().over(order_by=ibis.desc("count")))
-                .rename({"downloads": "count"})
-                .relocate("index")
-                .order_by("index")
-            )
-
-            c = px.bar(t, x="project", y="downloads")
-
-            return c
 
 
 # reactive calculations and effects

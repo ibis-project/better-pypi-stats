@@ -14,7 +14,9 @@ default:
 # setup
 setup:
     @pip install uv
-    @uv pip install --upgrade -r dev-requirements.txt
+    @uv venv
+    @. .venv/bin/activate
+    @uv pip install --upgrade --resolution=highest -r dev-requirements.txt
 
 # dashboard
 app:
