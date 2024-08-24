@@ -13,7 +13,7 @@ default:
 
 # setup
 setup:
-    @uv venv
+    @uv venv --python 3.12
     @. .venv/bin/activate
     @uv pip install --upgrade --resolution=highest -r dev-requirements.txt
 
