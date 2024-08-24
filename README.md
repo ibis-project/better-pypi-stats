@@ -4,7 +4,7 @@ You can use https://pypistats.org to see the downloads for a given PyPI package.
 
 ## Dashboard
 
-https://dkdc.shinyapps.io/better-pypi-stats
+https://connect.posit.cloud/lostmygithubaccount/content/019180af-9e47-14bd-0955-38e6d98a5f98
 
 ## Connecting to  data
 
