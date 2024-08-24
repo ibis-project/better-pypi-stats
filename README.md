@@ -30,7 +30,7 @@ con.list_tables()
 
 ## Development
 
-Install [`gh`](https://github.com/cli/cli) and [`just`](https://github.com/casey/just), then:
+Install [`gh`](https://github.com/cli/cli) and [`just`](https://github.com/casey/just) and [`uv`](https://github.com/astral-sh/uv), then:
 
 ```bash
 gh repo clone ibis-project/better-pypi-stats
