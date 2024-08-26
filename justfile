@@ -35,4 +35,4 @@ deploy:
 
 # open
 open:
-    @open https://dkdc.shinyapps.io/better-pypi-stats
+    @open https://connect.posit.cloud/lostmygithubaccount/content/019180af-9e47-14bd-0955-38e6d98a5f98
