@@ -48,8 +48,8 @@ with ui.sidebar(open="desktop"):
     ui.input_date_range(
         "date_range",
         "Date range",
-        start=(datetime.now() - timedelta(days=28)).strftime("%Y-%m-%d"),
-        end=datetime.now().strftime("%Y-%m-%d"),
+        start=(datetime.now() - timedelta(days=28)),
+        end=datetime.now() + timedelta(days=1),
     )
     ui.input_action_button("last_7d", "Last 7 days")
     ui.input_action_button("last_14d", "Last 14 days")
@@ -57,6 +57,7 @@ with ui.sidebar(open="desktop"):
     ui.input_action_button("last_91d", "Last 91 days")
     ui.input_action_button("last_182d", "Last 182 days")
     ui.input_action_button("last_365d", "Last 365 days")
+    ui.input_action_button("last_730d", "Last 730 days")
     ui.input_action_button("last_all", "All available data")
 
     with ui.value_box(full_screen=True):
@@ -65,7 +66,7 @@ with ui.sidebar(open="desktop"):
         @render.express
         def total_days():
             start_date, end_date = date_range()
-            days = (end_date - start_date).days
+            days = (end_date - start_date).days - 1
             f"{days:,}"
 
 
@@ -335,64 +336,56 @@ def _downloads_data(downloads_t=downloads_t):
     return t
 
 
+def _update_date_range(days):
+    start_date = datetime.now() - timedelta(days=days)
+    end_date = datetime.now() + timedelta(days=1)
+    ui.update_date_range(
+        "date_range",
+        start=start_date.strftime("%Y-%m-%d"),
+        end=end_date.strftime("%Y-%m-%d"),
+    )
+
+
 @reactive.effect
 @reactive.event(input.last_7d)
 def _():
-    ui.update_date_range(
-        "date_range",
-        start=(datetime.now() - timedelta(days=7)).strftime("%Y-%m-%d"),
-        end=datetime.now().strftime("%Y-%m-%d"),
-    )
+    _update_date_range(days=7)
 
 
 @reactive.effect
 @reactive.event(input.last_14d)
 def _():
-    ui.update_date_range(
-        "date_range",
-        start=(datetime.now() - timedelta(days=14)).strftime("%Y-%m-%d"),
-        end=datetime.now().strftime("%Y-%m-%d"),
-    )
+    _update_date_range(days=14)
 
 
 @reactive.effect
 @reactive.event(input.last_28d)
 def _():
-    ui.update_date_range(
-        "date_range",
-        start=(datetime.now() - timedelta(days=28)).strftime("%Y-%m-%d"),
-        end=datetime.now().strftime("%Y-%m-%d"),
-    )
+    _update_date_range(days=28)
 
 
 @reactive.effect
 @reactive.event(input.last_91d)
 def _():
-    ui.update_date_range(
-        "date_range",
-        start=(datetime.now() - timedelta(days=91)).strftime("%Y-%m-%d"),
-        end=datetime.now().strftime("%Y-%m-%d"),
-    )
+    _update_date_range(days=91)
 
 
 @reactive.effect
 @reactive.event(input.last_182d)
 def _():
-    ui.update_date_range(
-        "date_range",
-        start=(datetime.now() - timedelta(days=182)).strftime("%Y-%m-%d"),
-        end=datetime.now().strftime("%Y-%m-%d"),
-    )
+    _update_date_range(days=182)
 
 
 @reactive.effect
 @reactive.event(input.last_365d)
 def _():
-    ui.update_date_range(
-        "date_range",
-        start=(datetime.now() - timedelta(days=365)).strftime("%Y-%m-%d"),
-        end=datetime.now().strftime("%Y-%m-%d"),
-    )
+    _update_date_range(days=365)
+
+
+@reactive.effect
+@reactive.event(input.last_730d)
+def _():
+    _update_date_range(days=730)
 
 
 @reactive.effect
